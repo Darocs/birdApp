@@ -10,14 +10,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class BirdsUiState(val images: List<BirdImage>)
+data class BirdsUiState(
+    val images: List<BirdImage> = emptyList(),
+    val selectedCategory: String? = null
+) {
+    val categories: Set<String> = images.map { it.category }.toSet()
+    val selectedImages: List<BirdImage> = images.filter { it.category == selectedCategory }
+}
 
 
 class BirdViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(BirdsUiState(emptyList()))
     val uiState: StateFlow<BirdsUiState> = _uiState.asStateFlow()
 
-    private val  httpClient: HttpClient = HttpClient() {
+    private val  httpClient: HttpClient = HttpClient {
         install(ContentNegotiation) {
             json()
         }
@@ -29,6 +35,13 @@ class BirdViewModel: ViewModel() {
             _uiState.update {
                 it.copy(images = images)
             }
+        }
+
+    fun selectCategory(category: String) =
+        _uiState.update { state ->
+            if (state.selectedCategory == category)
+                state.copy(selectedCategory = null)
+            else state.copy(selectedCategory = category)
         }
 
     override fun onCleared() {

@@ -3,12 +3,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import dev.icerock.moko.mvvm.compose.getViewModel
@@ -17,10 +22,26 @@ import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+@Composable
+fun BirdAppTheme(
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colors = MaterialTheme.colors.copy(primary = Color.Black),
+        shapes = MaterialTheme.shapes.copy(
+            small = RoundedCornerShape(0.dp),
+            medium = RoundedCornerShape(0.dp),
+            large = RoundedCornerShape(0.dp)
+        )
+    ) {
+        content()
+    }
+}
+
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    MaterialTheme {
+    BirdAppTheme {
         /*var greetingText by remember { mutableStateOf("Hello World!") }
         var showImage by remember { mutableStateOf(false) }
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -44,28 +65,42 @@ fun App() {
             birdsViewModel.updateImages()
         }
 
-        BirdsPage(uiState)
+        BirdsPage(
+            uiState = uiState,
+            onSelectCategory = { birdsViewModel.selectCategory(it) }
+        )
     }
 }
 
 @Composable
-fun BirdsPage(uiState: BirdsUiState) {
-    Column {
+fun BirdsPage(uiState: BirdsUiState, onSelectCategory: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             modifier = Modifier.fillMaxWidth().padding(5.dp)
-        ){
-
+        ) {
+            for (category in uiState.categories) {
+                Button(
+                    onClick = { onSelectCategory(category) },
+                    modifier = Modifier.aspectRatio(1.0f).weight(1.0f)
+                ) {
+                    Text(category)
+                }
+            }
         }
 
-        AnimatedVisibility(visible = uiState.images.isNotEmpty()) {
+        AnimatedVisibility(visible = uiState.selectedImages.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(180.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp)
             ) {
-                items(uiState.images) { image ->
+                items(uiState.selectedImages) { image ->
                     BirdImageCell(image)
                 }
             }
